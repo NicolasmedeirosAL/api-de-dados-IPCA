@@ -1,8 +1,7 @@
 import historicoInflacao from '../dados/dados.js'
 
 export const buscarIpcaPorAno = anoIpca => {
-  const anoFormatado = parseInt(anoIpca)
-  const ipcaFiltrado = historicoInflacao.filter(ipca => ipca.ano === anoFormatado)
+  const ipcaFiltrado = historicoInflacao.filter(ipca => ipca.ano === anoIpca)
   return ipcaFiltrado
 }
 
