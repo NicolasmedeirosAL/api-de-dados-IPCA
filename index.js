@@ -1,53 +1,64 @@
 import express from 'express'
 const app = express()
 
-import historicoInflacao from './dados/dados.js'
-import { buscarIpcaPorAno, buscarPorId, calculoDeReajuste } from './funcoes/funcoes.js'
+import {
+  buscarHistorico,
+  buscarHistoricoPorAno,
+  buscarHistoricoPorId,
+  validacaoErro,
+  calculoDeReajuste
+} from './funcoes/funcoes.js'
 
+// rota Calculo
+app.get('/historicoIPCA/calculo', (req, res) => {
+  const valor = parseFloat(req.query.valor)
+  const mesInicial = parseInt(req.query.mesInicial)
+  const anoInicial = parseInt(req.query.anoInicial)
+  const mesFinal = parseInt(req.query.mesFinal)
+  const anoFinal = parseInt(req.query.anoFinal)
+
+  if (validacaoErro(valor, mesInicial, anoInicial, mesFinal, anoFinal)) {
+    res.status(400).send({ Erro: 'Parametros Invalidos' })
+    return
+  }
+  const resultado = calculoDeReajuste(
+    valor,
+    mesInicial,
+    anoInicial,
+    mesFinal,
+    anoFinal
+  )
+  res.json({ resultado: resultado })
+})
+// rota Historico e historico por ano
 app.get('/historicoIPCA', (req, res) => {
-  const anoIPCA = parseInt(req.query.ano)
+  const ano = parseInt(req.query.ano)
 
-  if (anoIPCA < 2015 || anoIPCA > 2023) {
-    res.status(400).send({ erro: 'Nenhum histórico encontrado para esse ano!' })
-
-  } else if (anoIPCA) {
-    const ipcaPorAnoFiltrado = buscarIpcaPorAno(anoIPCA)
-    res.json(ipcaPorAnoFiltrado)
-
+  if (isNaN(ano)) {
+    res.json(buscarHistorico())
   } else {
-    res.json(historicoInflacao)
+    const resultado = buscarHistoricoPorAno(ano)
+    if (resultado.length > 0) {
+      res.json({ resultado: resultado })
+    } else {
+      res
+        .status(404)
+        .send({ erro: 'Nenhum histórico encontrado para ano especificado!' })
+    }
   }
 })
-
-
-app.get('/historicoIPCA/calculo', (req, res) => {
-  const valor = Number(req.query.valor)
-  const mesInicial = Number(req.query.mesInicial)
-  const anoInicial = Number(req.query.anoInicial)
-  const mesFinal = Number(req.query.mesFinal)
-  const anoFinal = Number(req.query.anoFinal)
-
-
-
- 
-  res.json(calculoDeReajuste(valor,mesInicial,anoInicial,mesFinal,anoFinal))
-
-
-})
-
-
-app.get('/historicoIPCA/:idipca', (req, res) => {
-  const ipca = buscarPorId(req.params.idipca)
+// rota ID
+app.get('/historicoIPCA/:id', (req, res) => {
+  const ipca = buscarHistoricoPorId(req.params.id)
 
   if (ipca) {
     res.json(ipca)
-  } else if (isNaN(parseInt(req.params.idipca))) {
+  } else if (isNaN(parseInt(req.params.id))) {
     res.status(400).send({ erro: 'Requisição Invalida!' })
   } else {
     res.status(404).send({ erro: 'ID não encontrado!' })
   }
 })
-
 
 app.listen(8080, () => {
   const data = new Date()
