@@ -2,7 +2,7 @@ import express from 'express'
 const app = express()
 
 import historicoInflacao from './dados/dados.js'
-import { buscarIpcaPorAno, buscarPorId } from './funcoes/funcoes.js'
+import { buscarIpcaPorAno, buscarPorId, calculoDeReajuste } from './funcoes/funcoes.js'
 
 app.get('/historicoIPCA', (req, res) => {
   const anoIPCA = parseInt(req.query.ano)
@@ -19,6 +19,23 @@ app.get('/historicoIPCA', (req, res) => {
   }
 })
 
+
+app.get('/historicoIPCA/calculo', (req, res) => {
+  const valor = Number(req.query.valor)
+  const mesInicial = Number(req.query.mesInicial)
+  const anoInicial = Number(req.query.anoInicial)
+  const mesFinal = Number(req.query.mesFinal)
+  const anoFinal = Number(req.query.anoFinal)
+
+
+
+ 
+  res.json(calculoDeReajuste(valor,mesInicial,anoInicial,mesFinal,anoFinal))
+
+
+})
+
+
 app.get('/historicoIPCA/:idipca', (req, res) => {
   const ipca = buscarPorId(req.params.idipca)
 
@@ -31,15 +48,6 @@ app.get('/historicoIPCA/:idipca', (req, res) => {
   }
 })
 
-app.get('/calculo', (req, res) => {
-  const valor = req.query.valor
-  const mesInicial = req.query.mesInicial
-  const anoInicial = req.query.anoInicial
-  const mesFinal = req.query.mesFinal
-  const anoFinal = req.query.anoFinal
-
-  
-})
 
 app.listen(8080, () => {
   const data = new Date()
